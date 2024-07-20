@@ -11,11 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user', function (Blueprint $table) {
+        Schema::create('menus', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email')->unique();
-            $table->text('password');
+            $table->text('description')->nullable();
+            $table->string('icon')->nullable();
+            $table->decimal('price', 10, 2);
+            $table->foreignId('category_id')->constrained('menu_categories');
+            $table->softDeletes();
             $table->timestamps();
         });
     }
@@ -25,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user');
+        Schema::dropIfExists('menus');
     }
 };
