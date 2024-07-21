@@ -14,11 +14,12 @@ return new class extends Migration
         Schema::create('menus', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->text('description')->nullable();
-            $table->string('icon')->nullable();
-            $table->decimal('price', 10, 2);
-            $table->foreignId('category_id')->constrained('menu_categories');
+            $table->integer('price');
+            $table->text('description');
+            $table->string('icon');
+            $table->integer('rate');
             $table->softDeletes();
+            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });
     }

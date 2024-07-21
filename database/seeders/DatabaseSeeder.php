@@ -3,53 +3,72 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Menu;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder {
-    private $permissions  = [
-        'role-list',
-        'role-create',
-        'role-edit',
-        'role-delete',
-        'menu-list',
-        'menu-create',
-        'menu-edit',
-        'menu-delete'
-    ];
-
     /**
      * Seed the application's database.
      */
     public function run(): void {
-        foreach ($this->permissions as $permission) {
-            Permission::create(['name' => $permission]);
-        }
-
-        $admin = User::create([
+        User::create([
+            'username' => 'admin',
             'name' => 'Admin',
-            'email' => 'admin@main.test',
-            'password' => Hash::make('admin')
+            'email' => 'admin@example.test',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
         ]);
 
-        $role = Role::create(['name' => 'Admin']);
-        $permissions = Permission::pluck('id', 'id')->all();
-        $role->syncPermissions($permissions);
-        $admin->assignRole([$role->id]);
-
-        $staff = User::create([
+        User::create([
+            'username' => 'staff',
             'name' => 'Staff',
-            'email' => 'staff@main.test',
-            'password' => Hash::make('staff')
+            'email' => 'staff@example.test',
+            'password' => bcrypt('password'),
+            'role' => 'staff',
         ]);
 
-        $role = Role::create(['name' => 'Staff']);
+        User::create([
+            'username' => 'user',
+            'name' => 'User',
+            'email' => 'user@example.test',
+            'password' => bcrypt('password'),
+            'role' => 'user',
+        ]);
 
-        $permission = Permission::where('name', 'menu-list')->first();
-        $role->syncPermissions([$permission->id]);
-        $staff->assignRole([$role->id]);
+        $curl = curl_init();
+
+        curl_setopt_array($curl, [
+            CURLOPT_URL => "https://raw.githubusercontent.com/igdev116/free-food-menus-api/main/db.json",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "GET",
+            CURLOPT_HTTPHEADER => [
+                "Accept: application/json",
+                "Content-Type: application/json"
+            ],
+        ]);
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+
+        $data = json_decode($response, true);
+        $dessert = $data['sandwiches'];
+
+        foreach ($dessert as $menu) {
+            Menu::create([
+                'name' => $menu['name'],
+                'price' => intval($menu['price']) * 1000,
+                'description' => $menu['dsc'],
+                'icon' => $menu['img'],
+                'rate' => $menu['rate'],
+                'status' => 'active',
+            ]);
+        }
     }
 }
